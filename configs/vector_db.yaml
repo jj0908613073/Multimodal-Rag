@@ -1,0 +1,31 @@
+# ==========================================
+# 向量庫 (Milvus) 設定範本
+# ==========================================
+
+milvus:
+  alias: "default"
+  database: "multimodal_rag"
+  collection_name: "document_chunks"
+  
+  # 模型產生的 Embedding 維度
+  # openai: 1536
+  # bge-m3: 1024
+  # clip: 512 / 768
+  dim: 1024
+  
+  # 距離計算方式
+  # L2 (歐式距離), IP (內積), COSINE (餘弦相似度)
+  metric_type: "COSINE"
+  
+  # 索引類型
+  # HNSW, IVF_FLAT, IVF_SQ8 等
+  index_type: "HNSW"
+  
+  # 索引建構參數
+  index_params:
+    M: 16
+    efConstruction: 200
+
+  # 檢索參數
+  search_params:
+    ef: 64

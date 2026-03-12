@@ -1,0 +1,46 @@
+# 排除 venv 與快取
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+
+# 排除環境變數
+.env
+.env.*
+!.env.example
+
+# 排除 IDE 設定 (除了必要的 launch.json)
+.vscode/*
+!.vscode/launch.json
+.idea/
+
+# 排除本地資料夾 (僅上線測試用的短暫資料庫與日誌，以及解析輸入/輸出)
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/input/*
+!data/input/.gitkeep
+
+storage/redis/*
+!storage/redis/.gitkeep
+storage/milvus/*
+!storage/milvus/.gitkeep
+storage/minio/*
+!storage/minio/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+
+# Node 前端排除
+node_modules/
+dist/
+build/
+.npm/
+
+# macOS
+.DS_Store
