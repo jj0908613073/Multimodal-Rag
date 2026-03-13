@@ -2,6 +2,7 @@ import os
 import sys
 import base64
 import tempfile
+import subprocess
 from pathlib import Path
 from typing import Optional
 from collections import defaultdict
@@ -128,7 +129,61 @@ class DocumentProcessor:
                     print(f"PPDocLayoutDetector 啟動失敗: {e}")
             else:
                 print(f"找不到設定檔 {config_path}，無法啟動 PP-Structure。")
+    #word轉pdf
+    def _find_soffice(self) -> str:
+        candidates = [
+            "soffice",
+            "/usr/bin/soffice",
+            "/snap/bin/libreoffice",
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ]
+        for c in candidates:
+            if c == "soffice":
+                return c
+            if os.path.isfile(c):
+                return c
+        raise FileNotFoundError("找不到 LibreOffice 的 soffice，請先安裝 LibreOffice 或加入 PATH。")
 
+    def _convert_docx_to_pdf(self, docx_path: Path) -> Path:
+        """
+        將 docx 自動轉成 pdf，放到同層的 _pdf_cache 資料夾。
+        若已存在同名 pdf，直接回傳。
+        """
+        pdf_dir = docx_path.parent / "_pdf_cache"
+        pdf_dir.mkdir(parents=True, exist_ok=True)
+        pdf_path = pdf_dir / f"{docx_path.stem}.pdf"
+        if pdf_path.exists():
+            return pdf_path
+        soffice = self._find_soffice()
+        cmd = [
+            soffice,
+            "--headless",
+            "--convert-to", "pdf",
+            "--outdir", str(pdf_dir),
+            str(docx_path),
+        ]
+        try:
+            result = subprocess.run(
+                cmd,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            if result.stdout:
+                print(result.stdout.strip())
+            if result.stderr:
+                print(result.stderr.strip())
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(
+                f"DOCX 轉 PDF 失敗: {docx_path}\n"
+                f"stdout:\n{e.stdout}\n"
+                f"stderr:\n{e.stderr}"
+            )
+        if not pdf_path.exists():
+            raise RuntimeError(f"轉換完成後仍找不到 PDF：{pdf_path}")
+        return pdf_path
     # ─────────────────────────────────────────────
     #  工具方法
     # ─────────────────────────────────────────────
@@ -210,16 +265,18 @@ class DocumentProcessor:
         input_path = Path(file_path)
         if not input_path.exists():
             raise FileNotFoundError(f"找不到檔案: {input_path}")
-
-        # 建立本文件的輸出資料夾 (與檔名同名)
+        # 若是 DOCX，先自動轉 PDF
+        actual_input_path = input_path
+        if input_path.suffix.lower() == ".docx":
+            actual_input_path = self._convert_docx_to_pdf(input_path)
+            print(f"DOCX 已自動轉成 PDF: {actual_input_path}")
+        # 建立本文件的輸出資料夾 (仍以原始檔名命名)
         doc_output_dir = self.output_dir / input_path.stem
         img_output_dir = doc_output_dir / "images"
         img_output_dir.mkdir(parents=True, exist_ok=True)
-
         print(f"開始解析文件: {input_path.name}")
-
         # ── Step 1: Docling 轉換 ──────────────────────────────────────
-        conv_result = self.converter.convert(str(input_path))
+        conv_result = self.converter.convert(str(actual_input_path))
         document = conv_result.document
 
         # Cache page PIL images 以便後續裁切
@@ -465,8 +522,10 @@ class DocumentProcessor:
 
         # 收集所有符合副檔名的檔案
         files = [
-            p for p in input_root.rglob("*")
-            if p.is_file() and p.suffix.lower() in exts
+        p for p in input_root.rglob("*")
+        if p.is_file()
+        and p.suffix.lower() in exts
+        and "_pdf_cache" not in p.parts
         ]
         if not files:
             print(f"在 {input_root} 底下找不到符合 {exts} 的檔案。")

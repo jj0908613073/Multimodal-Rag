@@ -60,8 +60,8 @@ pipeline:
   # OCR API client configuration (for self-hosted vLLM/SGLang/Ollama)
   ocr_api:
     # Basic connection (Ollama default port: 11434)
-    api_host: 127.0.0.1
-    api_port: 11434
+    api_host: allm01
+    api_port:  12384
      
     # Basic connection (Company vLLM - commented out)
     # api_host: allm01
@@ -71,7 +71,7 @@ pipeline:
     # Set to `glm-ocr` to match `--served-model-name` when using vLLM/SGLang.
     # For Ollama, set to your model name (e.g. "glm-ocr:latest").
     # model:  zai-org/GLM-OCR (Company vLLM model - commented out)
-    model: glm-ocr:latest
+    model: glm-ocr-80k:latest 
     # URL construction: {api_scheme}://{api_host}:{api_port}{api_path}
     # Or set api_url directly to override
     api_scheme: null # null = auto (https if port 443, else http)

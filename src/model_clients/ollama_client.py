@@ -8,9 +8,9 @@ class OllamaClient(MultiModalClient):
     適用於本機快速開發或部署小型/中型多模態開源模型
     """
     def __init__(self, endpoint: str = None, model_name: str = None):
-        self.endpoint = endpoint or os.getenv("OLLAMA_ENDPOINT", "http://localhost:11434")
-        self.model_name = model_name or os.getenv("MODEL_NAME", "glm-ocr:latest")
-        
+        self.endpoint = endpoint or os.getenv("OLLAMA_ENDPOINT", "http://allm01:12384")
+        self.model_name = model_name or os.getenv("MODEL_NAME", "glm-ocr-80k:latest")
+
     def _call_generate(self, prompt: str, images: list = None, system: str = "") -> str:
         payload = {
             "model": self.model_name,

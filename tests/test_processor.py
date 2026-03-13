@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from src.processors.document_processor import DocumentProcessor
 from dotenv import load_dotenv
 
@@ -6,10 +10,10 @@ load_dotenv()
 from src.model_clients.ollama_client import OllamaClient
 
 def main():
-    # 使用符合使用者本地的 model_name
-    vlm_client = OllamaClient(model_name="glm-ocr:latest")
+    
+    vlm_client = OllamaClient(model_name="glm-ocr-80k:latest")
     processor = DocumentProcessor(vlm_client=vlm_client, output_dir="./data/processed")
-    test_file = "glm-ocr/examples/source/buys_20240226.pdf"
+    test_file = "glm-ocr/resources/speed.png"
     
     print(f"Testing document processor with {test_file}...")
     try:
